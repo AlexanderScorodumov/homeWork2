@@ -1,3 +1,5 @@
 # otusProject
 OTUS. Software architecture and patterns course
-From VSCode
+
+Homework #1
+From VSCode #2
