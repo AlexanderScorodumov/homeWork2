@@ -3,7 +3,7 @@ import main
 
 def test_solve():
     #1
-    lst = main.solve(1, 0, 1)
+    lst = main.solve(1, 0, -1)
     assert len(lst) == 0
     #2
     lst = sorted(main.solve(1, 0, -1))
