@@ -1,2 +1,2 @@
-# otus homework #2
+# otus
 OTUS. Software architecture and patterns course
