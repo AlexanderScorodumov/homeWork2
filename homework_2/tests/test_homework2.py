@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import Mock
-import homework_2
+import homework_2.homework_2 as homework_2
 
 
 class TestMovable(unittest.TestCase):
