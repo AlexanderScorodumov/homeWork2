@@ -34,8 +34,15 @@ class Rotable(ABC):
         pass
 
 
-class Move:
+class Command(ABC):
+    @abstractmethod
+    def execute(self):
+        pass
+
+
+class Move(Command):
     def __init__(self, movable: Movable) -> None:
+        super().__init__()
         self.movable = movable
 
     def execute(self):
@@ -49,8 +56,9 @@ class Move:
         self.movable.set_position(np.ndarray.tolist(np.array(position) + np.array(velocity)))
 
 
-class Rotate:
+class Rotate(Command):
     def __init__(self, rotable: Rotable) -> None:
+        super().__init__()
         self.rotable = rotable
 
     def execute(self):

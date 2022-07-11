@@ -3,7 +3,7 @@ from unittest.mock import Mock
 import homework2
 
 
-class TestMovable(unittest.TestCase):
+class TestMoveCommand(unittest.TestCase):
     def test_set_position(self):
         movable_mock = Mock()
         movable_mock.get_position.return_value = [12, 5]
@@ -33,7 +33,7 @@ class TestMovable(unittest.TestCase):
         self.assertRaises(Exception, move.execute)
         
 
-class TestRotable(unittest.TestCase):
+class TestRotateCommand(unittest.TestCase):
     def test_set_direction(self):
         rotable_mock = Mock()
         rotable_mock.get_direction.return_value = 5
