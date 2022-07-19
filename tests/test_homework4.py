@@ -10,7 +10,7 @@ class TestExceptionHandlers(unittest.TestCase):
         self.mocks = []
         self.commands_queue = []
         for i in range(self.count):
-            self.mocks.append(Mock())
+            self.mocks.append(Mock(source.Command))
             self.mocks[i].execute.side_effect = Exception()
             self.commands_queue.append(self.mocks[i])                 
 
@@ -23,9 +23,12 @@ class TestExceptionHandlers(unittest.TestCase):
     @patch.object(source.LogCommand, 'execute')
     def test_handler_logger(self, mock_log_command_execute):
         mock_log_command_execute.return_value = True
+
+        dictionary = {}
+        dictionary[source.Command.__mro__[0]] = lambda command_queue: source.ExceptionHandlerLogger(command_queue)
  
         #Main command execute
-        main_command = source.MainCommand(self.commands_queue, source.ExceptionHandlerLogger(self.commands_queue))
+        main_command = source.MainCommand(self.commands_queue, dictionary)
         main_command.execute()
 
         #Asserts
@@ -33,26 +36,17 @@ class TestExceptionHandlers(unittest.TestCase):
             assert self.mocks[i].execute.call_count == 1
         assert mock_log_command_execute.call_count == self.count
 
-    @patch.object(source.LogCommand, 'execute')
-    def test_handler_repeater(self, mock_log_command_execute):
-        mock_log_command_execute.return_value = True
- 
-        #Main command execute
-        main_command = source.MainCommand(self.commands_queue, source.ExceptionHandlerRepeater(self.commands_queue))
-        main_command.execute()
-
-        #Asserts
-        for i in range(self.count):
-            assert self.mocks[i].execute.call_count == 2
-        assert mock_log_command_execute.call_count == 0
-
 
     @patch.object(source.LogCommand, 'execute')
     def test_handler_repeater_and_logger(self, mock_log_command_execute):
         mock_log_command_execute.return_value = True
  
+        dictionary = {}
+        dictionary[source.Command.__mro__[0]] = lambda command_queue: source.ExceptionHandlerRepeater(command_queue)
+        dictionary[source.RepeaterCommand.__mro__[0]] = lambda command_queue: source.ExceptionHandlerLogger(command_queue)
+ 
         #Main command execute
-        main_command = source.MainCommand(self.commands_queue, source.ExceptionHandlerRepeaterAndLogger(self.commands_queue))
+        main_command = source.MainCommand(self.commands_queue, dictionary)
         main_command.execute()
 
         #Asserts
@@ -60,12 +54,18 @@ class TestExceptionHandlers(unittest.TestCase):
             assert self.mocks[i].execute.call_count == 2
         assert mock_log_command_execute.call_count == self.count
 
+
     @patch.object(source.LogCommand, 'execute')
     def test_handler_double_repeater_and_logger(self, mock_log_command_execute):
         mock_log_command_execute.return_value = True
  
+        dictionary = {}
+        dictionary[source.Command.__mro__[0]] = lambda command_queue: source.ExceptionHandlerDoubleRepeater(command_queue)
+        dictionary[source.DoubleRepeaterCommand.__mro__[0]] = lambda command_queue: source.ExceptionHandlerRepeater(command_queue)
+        dictionary[source.RepeaterCommand.__mro__[0]] = lambda command_queue: source.ExceptionHandlerLogger(command_queue)
+ 
         #Main command execute
-        main_command = source.MainCommand(self.commands_queue, source.ExceptionHandlerDoubleRepeaterAndLogger(self.commands_queue))
+        main_command = source.MainCommand(self.commands_queue, dictionary)
         main_command.execute()
 
         #Asserts

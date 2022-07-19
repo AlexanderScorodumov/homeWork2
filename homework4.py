@@ -17,8 +17,8 @@ class LogCommand(Command):
         super().__init__()
         self.exception = exception
         
-
     def execute(self):
+        print("Log command")
         pass
 
 
@@ -28,7 +28,7 @@ class RepeaterCommand(Command):
         self.command = command
 
     def execute(self):
-        print("Repeater")
+        #print("Repeater command")
         self.command.execute()
 
 
@@ -38,65 +38,49 @@ class DoubleRepeaterCommand(Command):
         self.command = RepeaterCommand(command)
 
     def execute(self):
-        print("DoubleRepeater")
+        #print("Double repeater command")
         self.command.execute()
 
 
-class ExceptionHandlerLogger():
-    def __init__(self, commandList: list[Command]) -> None:
-        self.commandList = commandList
+class ExceptionHandlerLogger(ExceptionHandler):
+    def __init__(self, command_queue: list[Command]) -> None:
+        super().__init__()
+        self.command_queue = command_queue
 
     def handle(self, command: Command, exception: Exception):
-        self.commandList.append(LogCommand(exception))
+        self.command_queue.append(LogCommand(exception))
 
 
-class ExceptionHandlerRepeater():
-    def __init__(self, commandList: list[Command]) -> None:
-        self.commandList = commandList
-
-    def handle(self, command: Command, exception: Exception):
-        if not(isinstance(command, RepeaterCommand)):
-            self.commandList.append(RepeaterCommand(command))
-
-
-class ExceptionHandlerRepeaterAndLogger():
-    def __init__(self, commandList: list[Command]) -> None:
-        self.commandList = commandList
+class ExceptionHandlerRepeater(ExceptionHandler):
+    def __init__(self, command_queue: list[Command]) -> None:
+        super().__init__()
+        self.command_queue = command_queue
 
     def handle(self, command: Command, exception: Exception):
-        if not (isinstance(command, RepeaterCommand)):
-            self.commandList.append(RepeaterCommand(command))
-        else:
-            self.commandList.append(LogCommand(exception))
+        self.command_queue.append(RepeaterCommand(command))
 
 
-class ExceptionHandlerDoubleRepeaterAndLogger():
-    def __init__(self, commandList: list[Command]) -> None:
-        self.commandList = commandList
+class ExceptionHandlerDoubleRepeater(ExceptionHandler):
+    def __init__(self, command_queue: list[Command]) -> None:
+        super().__init__()
+        self.command_queue = command_queue
 
     def handle(self, command: Command, exception: Exception):
-        if not(isinstance(command, RepeaterCommand)):
-            if not (isinstance(command, DoubleRepeaterCommand)):
-                self.commandList.append(DoubleRepeaterCommand(command))
-            else:
-                self.commandList.append(RepeaterCommand(command))
-        else:
-            self.commandList.append(LogCommand(exception))
-        
+        self.command_queue.append(DoubleRepeaterCommand(command))
+
 
 class MainCommand(Command):
-    def __init__(self, commandQueue: list[Command], exceptionHandler: ExceptionHandler) -> None:
-        super().__init__()
-        self.commandQueue = commandQueue
-        self.exceptionHandler = exceptionHandler
+    def __init__(self, command_queue: list[Command], dictionary: dict[str, ExceptionHandler]) -> None:
+        self.command_queue = command_queue
+        self.dictionary = dictionary
 
     def execute(self):
         while(True):
-            if len(self.commandQueue) == 0:
+            if len(self.command_queue) == 0:
                 break
 
-            command = self.commandQueue.pop(0)
+            command = self.command_queue.pop(0)
             try:
                 command.execute()
             except Exception as ex:
-                self.exceptionHandler.handle(command, ex)
+                self.dictionary[command.__class__](self.command_queue).handle(command, ex)
