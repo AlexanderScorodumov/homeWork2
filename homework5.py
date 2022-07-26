@@ -70,8 +70,7 @@ class IoC:
     def Resolve(type: T, key: str, *args) -> T:
         if key == "IoC.Register":
             try:
-                IoC.scopesStorage.currentScope[str(args[0])] = args[1]
-                return IoC.scopesStorage.currentScope[args[0]]()
+                IoC.scopesStorage.currentScope[str(args[0])] = args[1]  
             except:
                 raise AttributeError("Unsupperted arguments for 'IoC.Register': %s", args)
         elif key == "Scopes.New":    
@@ -86,9 +85,9 @@ class IoC:
                 raise AttributeError("Unsupperted arguments for 'Scopes.New': %s", args)  
         else:
             try:
-                return IoC.scopesStorage.currentScope[key]()
+                return IoC.scopesStorage.currentScope[key](*args)
             except:
                 try:
-                    return IoC.scopesStorage.scopes["root"][key]()
+                    return IoC.scopesStorage.scopes["root"][key](*args)
                 except:
                     raise AttributeError("%s - unsupported argument for 'Resolve' method" % key)
