@@ -40,10 +40,10 @@ def GenerateAdapter(movable: Movable, object: ObjectProperty) -> Movable:
     for method in methods:
         name = str(method[0])
         if name.startswith("Get"):
-            IoC.Resolve(None, "IoC.Register", name, lambda object, name=name: object.GetProperty(name[3:]))
+            IoC.Resolve(None, "IoC.Register", name, lambda object, name=name: object.GetProperty(name[3:])).Execute()
             methodDictionary[name] = lambda self, name=name : IoC.Resolve(list, name, self.object)
         elif name.startswith("Set"):
-            IoC.Resolve(None, "IoC.Register", name, lambda object, value, name=name: object.SetProperty(name[3:], value))
+            IoC.Resolve(None, "IoC.Register", name, lambda object, value, name=name: object.SetProperty(name[3:], value)).Execute()
             methodDictionary[name] = lambda self, value, name=name : IoC.Resolve(None, name, self.object, value)
 
     Adapter = type("MovableAdapter", (Movable, ), methodDictionary)

@@ -29,13 +29,13 @@ class TestExceptionHandlers(unittest.TestCase):
         threadId = threading.get_ident()
         main.IoC.Resolve(main.Command, "Scopes.New", threadId).Execute()
         main.IoC.Resolve(main.Command, "Scopes.Current", threadId).Execute()
-        main.IoC.Resolve(main.Command, "IoC.Register", "CommandTest", lambda: self.TestCommand())
+        main.IoC.Resolve(main.Command, "IoC.Register", "CommandTest", lambda: self.TestCommand()).Execute()
         main.IoC.Resolve(main.Command, "CommandTest").Execute()
     
 
     def test_IoCRegisterExecption(self):
         with self.assertRaises(Exception):
-            main.IoC.Resolve(main.Command, "IoC.Register")
+            main.IoC.Resolve(main.Command, "IoC.Register").Execute()
 
 
     def test_IoCScoreNewExecption(self):
@@ -60,7 +60,7 @@ class TestExceptionHandlers(unittest.TestCase):
 
     @patch.object(TestCommand, 'Execute')
     def test_IoCCommandExecute(self, testCommand):
-        main.IoC.Resolve(main.Command, "IoC.Register", "CommandTest", lambda: self.TestCommand())
+        main.IoC.Resolve(main.Command, "IoC.Register", "CommandTest", lambda: self.TestCommand()).Execute()
         main.IoC.Resolve(main.Command, "CommandTest").Execute()
         assert testCommand.call_count == 1
 

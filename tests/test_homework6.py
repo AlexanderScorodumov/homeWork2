@@ -8,7 +8,7 @@ class TestClass(unittest.TestCase):
         #Set up mock
         self.objMock = Mock(main.ObjectProperty)
         #Generate adapter from IoC
-        main.IoC.Resolve(main.Command, "IoC.Register", "Adapter", main.GenerateAdapter)
+        main.IoC.Resolve(main.Command, "IoC.Register", "Adapter", main.GenerateAdapter).Execute()
         self.generatedAdapter = main.IoC.Resolve(main.Movable, "Adapter", main.Movable, self.objMock)
     
 

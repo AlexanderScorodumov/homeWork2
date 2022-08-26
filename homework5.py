@@ -45,6 +45,15 @@ class IoC:
     def __init__(self) -> None:
         pass
 
+    class _CommandRegister(Command):
+        def __init__(self, name: str, function) -> None:
+            super().__init__()
+            self.name = name
+            self.function = function
+
+        def Execute(self) -> None:
+            IoC.scopesStorage.currentScope[self.name] = self.function
+
     class _CommandScopeNew(Command):
         def __init__(self, newScope: str) -> None:
             super().__init__()
@@ -52,7 +61,6 @@ class IoC:
 
         def Execute(self) -> None:
             IoC.scopesStorage.NewScope(self.newScope)
-            #IoC.scopes[self.newScope] = {}
 
 
     class _CommandScopeCurrent(Command):
@@ -70,7 +78,7 @@ class IoC:
     def Resolve(type: T, key: str, *args) -> T:
         if key == "IoC.Register":
             try:
-                IoC.scopesStorage.currentScope[str(args[0])] = args[1]  
+                return IoC._CommandRegister(args[0], args[1])
             except:
                 raise AttributeError("Unsupperted arguments for 'IoC.Register': %s", args)
         elif key == "Scopes.New":    
