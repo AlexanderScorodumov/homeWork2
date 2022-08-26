@@ -83,12 +83,12 @@ class IoC:
                 raise AttributeError("Unsupperted arguments for 'IoC.Register': %s", args)
         elif key == "Scopes.New":    
             try:
-                return IoC._CommandScopeNew(str(args[0]))
+                return IoC._CommandScopeNew(args[0])
             except:
                 raise AttributeError("Unsupperted arguments for 'Scopes.New': %s", args)  
         elif key == "Scopes.Current":    
             try:
-                return IoC._CommandScopeCurrent(str(args[0]))
+                return IoC._CommandScopeCurrent(args[0])
             except:
                 raise AttributeError("Unsupperted arguments for 'Scopes.New': %s", args)  
         else:

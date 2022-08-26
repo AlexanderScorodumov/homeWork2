@@ -87,7 +87,7 @@ class TestExceptionHandlers(unittest.TestCase):
         assert main.IoC.scopesStorage.currentScope == main.IoC.scopesStorage.scopes["root"]
         self.threadingFunction()
         assert len(main.IoC.scopesStorage.scopes) == 2
-        assert main.IoC.scopesStorage.currentScope == main.IoC.scopesStorage.scopes[str(threading.get_ident())]
+        assert main.IoC.scopesStorage.currentScope == main.IoC.scopesStorage.scopes[threading.get_ident()]
         assert testCommand.call_count == 1
         thread1 = threading.Thread(target=self.threadingFunction)
         thread2 = threading.Thread(target=self.threadingFunction)
@@ -96,5 +96,5 @@ class TestExceptionHandlers(unittest.TestCase):
         thread1.join()
         thread2.join()
         assert len(main.IoC.scopesStorage.scopes) == 2
-        assert main.IoC.scopesStorage.currentScope == main.IoC.scopesStorage.scopes[str(threading.get_ident())]
+        assert main.IoC.scopesStorage.currentScope == main.IoC.scopesStorage.scopes[threading.get_ident()]
         assert testCommand.call_count == 3
