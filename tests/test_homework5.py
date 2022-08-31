@@ -1,4 +1,5 @@
 from importlib.util import set_loader
+from typing import Callable, Dict
 import unittest
 import threading
 from unittest.mock import Mock, patch
@@ -16,12 +17,13 @@ class TestExceptionHandlers(unittest.TestCase):
 
 
     def setUp(self):
-        main.IoC.scopesStorage = main.ScopesStorage()
+        main.IoC.scopesStorage: Dict[str, Dict[str, Callable]] = {"root": {}}
+        main.IoC.scopeLocal = main.Scope(scopesStorage=main.IoC.scopesStorage)
+        pass
     
 
     def tearDown(self):
-        main.IoC.scopesStorage.scopes.clear()
-        main.IoC.scopesStorage.currentScope.clear()
+        main.IoC.scopesStorage.clear()
         pass
 
 
@@ -40,12 +42,12 @@ class TestExceptionHandlers(unittest.TestCase):
 
     def test_IoCScoreNewExecption(self):
         with self.assertRaises(Exception):
-            main.IoC.Resolve(main.Command, "Scopes.New")
+            main.IoC.Resolve(main.Command, "Scopes.New").Execute()
 
 
     def test_IoCScoreCurrentExecption(self):
         with self.assertRaises(Exception):
-            main.IoC.Resolve(main.Command, "Scopes.Current")
+            main.IoC.Resolve(main.Command, "Scopes.Current").Execute()
 
 
     def test_IoCScoreCurrentNonExistentExecption(self):
@@ -55,7 +57,7 @@ class TestExceptionHandlers(unittest.TestCase):
 
     def test_IoCUnregisteredDependencyExecption(self):
         with self.assertRaises(Exception):
-            main.IoC.Resolve(main.Command, "Test")
+            main.IoC.Resolve(main.Command, "Test").Execute()
 
 
     @patch.object(TestCommand, 'Execute')
@@ -66,28 +68,28 @@ class TestExceptionHandlers(unittest.TestCase):
 
 
     def test_IoCScopeNew(self):
-        assert len(main.IoC.scopesStorage.scopes) == 1
-        assert main.IoC.scopesStorage.currentScope == main.IoC.scopesStorage.scopes["root"]
+        scopeStorageLength = len(main.IoC.scopesStorage)
+        assert main.IoC.scopeLocal.scope == main.IoC.scopesStorage["root"]
         main.IoC.Resolve(main.Command, "Scopes.New", "test").Execute()
-        assert len(main.IoC.scopesStorage.scopes) == 2
-        assert main.IoC.scopesStorage.currentScope == main.IoC.scopesStorage.scopes["root"]
+        assert len(main.IoC.scopesStorage) == scopeStorageLength + 1
+        assert main.IoC.scopeLocal.scope == main.IoC.scopesStorage["root"]
 
 
     def test_IoCScopeCurrent(self):
-        assert len(main.IoC.scopesStorage.scopes) == 1
-        assert main.IoC.scopesStorage.currentScope == main.IoC.scopesStorage.scopes["root"]
+        scopeStorageLength = len(main.IoC.scopesStorage)
+        assert main.IoC.scopeLocal.scope == main.IoC.scopesStorage["root"]
         main.IoC.Resolve(main.Command, "Scopes.New", "test").Execute()
         main.IoC.Resolve(main.Command, "Scopes.Current", "test").Execute()
-        assert len(main.IoC.scopesStorage.scopes) == 2
-        assert main.IoC.scopesStorage.currentScope == main.IoC.scopesStorage.scopes["test"]
+        assert len(main.IoC.scopesStorage) == scopeStorageLength + 1
+        assert main.IoC.scopeLocal.scope == main.IoC.scopesStorage["test"]
 
     @patch.object(TestCommand, 'Execute')
     def test_IoCFromDifferentThreads(self, testCommand):
-        assert len(main.IoC.scopesStorage.scopes) == 1
-        assert main.IoC.scopesStorage.currentScope == main.IoC.scopesStorage.scopes["root"]
+        scopeStorageLength = len(main.IoC.scopesStorage)
+        assert main.IoC.scopeLocal.scope == main.IoC.scopesStorage["root"]
         self.threadingFunction()
-        assert len(main.IoC.scopesStorage.scopes) == 2
-        assert main.IoC.scopesStorage.currentScope == main.IoC.scopesStorage.scopes[threading.get_ident()]
+        assert len(main.IoC.scopesStorage) == scopeStorageLength + 1
+        assert main.IoC.scopeLocal.scope == main.IoC.scopesStorage[str(threading.get_ident())]
         assert testCommand.call_count == 1
         thread1 = threading.Thread(target=self.threadingFunction)
         thread2 = threading.Thread(target=self.threadingFunction)
@@ -95,6 +97,6 @@ class TestExceptionHandlers(unittest.TestCase):
         thread2.start()
         thread1.join()
         thread2.join()
-        assert len(main.IoC.scopesStorage.scopes) == 2
-        assert main.IoC.scopesStorage.currentScope == main.IoC.scopesStorage.scopes[threading.get_ident()]
+        assert len(main.IoC.scopesStorage) == scopeStorageLength + 3
+        assert main.IoC.scopeLocal.scope == main.IoC.scopesStorage[str(threading.get_ident())]
         assert testCommand.call_count == 3

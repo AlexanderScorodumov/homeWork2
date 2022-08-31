@@ -1,6 +1,6 @@
 import threading
 from abc import ABC, abstractmethod
-from typing import TypeVar
+from typing import Callable, Dict, TypeVar
 
 
 class Command(ABC):
@@ -17,42 +17,39 @@ class CommandTest(Command):
         print(self.value)
 
 
-class ScopesStorage(threading.local):
-    def __init__(self) -> None:
+class Scope(threading.local):
+    def __init__(self, scopesStorage: Dict[str, Dict[str, Callable]]) -> None:
         super().__init__()
-        self._scopes = {"root": {}}
-        self._currentScope = self._scopes["root"]
-
-    def NewScope(self, newScope: str) -> None:
-        self._scopes[newScope] = {}
+        self._scopesStorage = scopesStorage
+        self._scope: Dict[str, Callable] = self._scopesStorage[list(self._scopesStorage.keys())[0]]
 
     @property
-    def scopes(self):
-        return self._scopes
-
-    @property
-    def currentScope(self):
-        return self._currentScope
+    def scope(self):
+        return self._scope
     
-    @currentScope.setter
-    def currentScope(self, newCurrentScope: str):
-        self._currentScope = self._scopes[newCurrentScope]
+    @scope.setter
+    def scope(self, scopeName: str):
+        self._scope = self._scopesStorage[scopeName]
  
 T = TypeVar('T')
 class IoC:
-    scopesStorage = ScopesStorage()
+    scopesStorage: Dict[str, Dict[str, Callable]] = {"root": {}}
+    scopeLocal: Dict[str, Callable] = Scope(scopesStorage=scopesStorage)
+
 
     def __init__(self) -> None:
         pass
 
+
     class _CommandRegister(Command):
-        def __init__(self, name: str, function) -> None:
+        def __init__(self, name: str, function: Callable) -> None:
             super().__init__()
             self.name = name
             self.function = function
 
         def Execute(self) -> None:
-            IoC.scopesStorage.currentScope[self.name] = self.function
+            IoC.scopeLocal.scope[self.name] = self.function
+
 
     class _CommandScopeNew(Command):
         def __init__(self, newScope: str) -> None:
@@ -60,7 +57,7 @@ class IoC:
             self.newScope = newScope
 
         def Execute(self) -> None:
-            IoC.scopesStorage.NewScope(self.newScope)
+            IoC.scopesStorage[self.newScope] = {}
 
 
     class _CommandScopeCurrent(Command):
@@ -69,8 +66,8 @@ class IoC:
             self.newScope = newScope
 
         def Execute(self) -> None:
-            if self.newScope in IoC.scopesStorage.scopes:
-                IoC.scopesStorage.currentScope = self.newScope
+            if self.newScope in IoC.scopesStorage.keys():
+                IoC.scopeLocal.scope = self.newScope
             else:
                 raise AttributeError("Non-existent scope: %s", self.newScope)
 
@@ -78,24 +75,24 @@ class IoC:
     def Resolve(type: T, key: str, *args) -> T:
         if key == "IoC.Register":
             try:
-                return IoC._CommandRegister(args[0], args[1])
+                return IoC._CommandRegister(str(args[0]), args[1])
             except:
-                raise AttributeError("Unsupperted arguments for 'IoC.Register': %s", args)
+                raise AttributeError("Unsupported arguments for 'IoC.Register': %s", args)
         elif key == "Scopes.New":    
             try:
-                return IoC._CommandScopeNew(args[0])
+                return IoC._CommandScopeNew(str(args[0]))
             except:
-                raise AttributeError("Unsupperted arguments for 'Scopes.New': %s", args)  
+                raise AttributeError("Unsupported arguments for 'Scopes.New': %s", args)  
         elif key == "Scopes.Current":    
             try:
-                return IoC._CommandScopeCurrent(args[0])
+                return IoC._CommandScopeCurrent(str(args[0]))
             except:
-                raise AttributeError("Unsupperted arguments for 'Scopes.New': %s", args)  
+                raise AttributeError("Unsupported arguments for 'Scopes.New': %s", args)  
         else:
             try:
-                return IoC.scopesStorage.currentScope[key](*args)
+                return IoC.scopeLocal.scope[str(key)](*args)
             except:
                 try:
-                    return IoC.scopesStorage.scopes["root"][key](*args)
+                    return IoC.scopesStorage["root"][key](*args)
                 except:
                     raise AttributeError("%s - unsupported argument for 'Resolve' method" % key)
