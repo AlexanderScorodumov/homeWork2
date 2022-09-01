@@ -15,6 +15,7 @@ class TestExceptionHandlers(unittest.TestCase):
         thread = threading.Thread(target=self.game.Execute)
         thread.start()
 
+
     def test_GameCommand(self):       
         interpretCommand = main.InterpretCommand(gameId="1", objectId="1", operationId="Move", args="None")
         self.game.objects = {"1": self.movableMock}
