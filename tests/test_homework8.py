@@ -23,3 +23,4 @@ class TestExceptionHandlers(unittest.TestCase):
         assert self.movableMock.GetPosition.call_count == 1
         assert self.movableMock.GetVelocity.call_count == 1
         assert self.movableMock.SetPosition.call_count == 1
+        self.game.gameQueue.clear()
