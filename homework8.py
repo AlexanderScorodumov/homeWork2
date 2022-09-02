@@ -182,12 +182,11 @@ def GameFunction():
     game.Execute()
     
 
-if __name__ == '__main__':
-    rabbitThread = threading.Thread(target=GetMessage)
-    rabbitThread.start()
-    gameList: list[threading.Thread] = []
-    for i in range(5):
-        gameList.append(threading.Thread(target=GameFunction))
-    for i in range(5):
-        gameList[i].start()
-    
+# if __name__ == '__main__':
+#     rabbitThread = threading.Thread(target=GetMessage)
+#     rabbitThread.start()
+#     gameList: list[threading.Thread] = []
+#     for i in range(5):
+#         gameList.append(threading.Thread(target=GameFunction))
+#     for i in range(5):
+#         gameList[i].start()    
