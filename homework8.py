@@ -135,15 +135,15 @@ class GameCommand(Command):
         self.objects: Dict[str, object] = dict()
         #self.objects[1] = TestMovableObject(position=[1,1], velocity=[2,2])
         self.gameQueue.append(CheckCommand(gameId=self.gameId, gameQueue=self.gameQueue, eventQueue=self.eventQueue))
-        #with lock:
-        IoC.Resolve(Command, "Scopes.New", self.gameId).Execute()
-        IoC.Resolve(Command, "Scopes.Current", self.gameId).Execute()
-        IoC.Resolve(Command, "IoC.Register", "GameQueue", lambda command: self.gameQueue.append(command)).Execute()
-        IoC.Resolve(Command, "IoC.Register", "EventQueue", lambda command: self.eventQueue.put(command)).Execute()
-        IoC.Resolve(Command, "IoC.Register", "Object", lambda objectId: self.objects[objectId]).Execute()
-        IoC.Resolve(Command, "IoC.Register", "Move", lambda object, args: Move(movable=object)).Execute()
-        IoC.Resolve(Command, "IoC.Register", "ChangeVelocity", lambda object, args: ChangeVelocity(movable=object, velocity=args)).Execute()
-        IoC.Resolve(Command, "IoC.Register", "ChangePosition", lambda object, args: ChangePosition(movable=object, position=args)).Execute()
+        with lock:
+            IoC.Resolve(Command, "Scopes.New", self.gameId).Execute()
+            IoC.Resolve(Command, "Scopes.Current", self.gameId).Execute()
+            IoC.Resolve(Command, "IoC.Register", "GameQueue", lambda command: self.gameQueue.append(command)).Execute()
+            IoC.Resolve(Command, "IoC.Register", "EventQueue", lambda command: self.eventQueue.put(command)).Execute()
+            IoC.Resolve(Command, "IoC.Register", "Object", lambda objectId: self.objects[objectId]).Execute()
+            IoC.Resolve(Command, "IoC.Register", "Move", lambda object, args: Move(movable=object)).Execute()
+            IoC.Resolve(Command, "IoC.Register", "ChangeVelocity", lambda object, args: ChangeVelocity(movable=object, velocity=args)).Execute()
+            IoC.Resolve(Command, "IoC.Register", "ChangePosition", lambda object, args: ChangePosition(movable=object, position=args)).Execute()
         print("New game #%s" % self.gameId)
 
     def Execute(self) -> None:
@@ -163,9 +163,9 @@ def callback(ch, method, properties, body):
         interpretCommand = InterpretCommand(gameId=testObject.gameId, objectId=testObject.objectId, operationId=testObject.operationId, args=testObject.args)
     except:
         raise AttributeError("%s - unsupported JSON format" % body)
-    #with lock:
-    IoC.Resolve(Command, "Scopes.Current", str(testObject.gameId)).Execute()
-    IoC.Resolve(None, "EventQueue", interpretCommand)
+    with lock:
+        IoC.Resolve(Command, "Scopes.Current", str(testObject.gameId)).Execute()
+        IoC.Resolve(None, "EventQueue", interpretCommand)
 
 
 def GetMessage():
