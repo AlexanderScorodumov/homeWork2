@@ -1,5 +1,3 @@
-from importlib.util import set_loader
-import os
 from time import sleep
 import unittest
 from unittest.mock import Mock, patch
