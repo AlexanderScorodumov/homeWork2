@@ -2,3 +2,4 @@ numpy
 parameterized
 pika
 jwt
+json
